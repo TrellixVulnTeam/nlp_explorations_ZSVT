@@ -232,3 +232,99 @@ doc = nlp(
 )
 
 print([(ent.text, ent.label_,ent._.mobility_category) for ent in doc.ents])
+
+
+# Getting real - efficient processing of more text ------
+
+import pandas as pd
+
+nlp = spacy.load("de_core_news_md")
+
+articles_df = pd.read_csv("data/raw/swissdox/210809_request/Angst1.tsv", sep='\t', encoding = 'utf-8')
+articles_df
+
+articles_df["rubric"].unique()
+# only zurich articles
+articles_zh = articles_df[articles_df["rubric"].isin(["Zürich","Zürich und Region"])]
+
+#turn text column in Pandas (which is a pyhton series) to a list to pass to spacy
+# to be fast, we'll work first with the heads (titles)
+zh_heads = articles_zh["head"].to_list()
+
+docs = list(nlp.pipe(zh_heads))
+
+# get all entities in titles
+
+entities = [doc.ents for doc in docs]
+entities[0:5]
+
+#show all person entities
+
+# find persons named
+persons_in_head = [ent.text for doc in docs for ent in doc.ents if ent.label_ == "PER"]
+persons_in_head
+
+# with matcher is probably faster but I have not gotten full solution yet
+
+from spacy.matcher import Matcher
+
+matcher = Matcher(nlp.vocab)
+
+any_person = [{"ENT_TYPE":"PER"}] #patterns are dictionaries
+# this means find a noun followed by a punctuation
+
+matcher.add("FIND_PERSON", [any_person]) #add pattern to matcher
+
+persons_in_head = [Span(doc,start,end).text for doc in docs for match_id, start, end in matcher(doc)]
+len(persons_in_head)
+persons_in_head
+
+# # for ref (as I am a bit shaky with List comprehension still - outermost loop comes always first)
+# for doc in docs[0:10]:
+#   for match_id, start, end in matcher(doc):
+#     Span(doc, start, end).text
+
+# visualize things - this is quite cool
+
+from spacy import displacy
+
+html = displacy.render(docs[0:30], style="ent", page=True)
+
+# to display the generated html
+
+import tempfile
+import webbrowser
+
+with tempfile.NamedTemporaryFile('w', delete=False, suffix='.html') as f:
+    url = 'file://' + f.name
+    f.write(html)
+webbrowser.open(url)
+
+# now read in context information about text as well
+
+# one way is to iterate over all pandas rows. this is likely very slow
+
+# another way would be to convert the pandas df to a list of named tuples
+#https://stackoverflow.com/questions/9758450/pandas-convert-dataframe-to-array-of-tuples/34551914#34551914
+
+from spacy.tokens import Doc
+
+dict_list = articles_zh.to_dict("records")
+articles_zh_tuples = [[item.get('content'),item] for item in dict_list][0]
+
+# Register some custom extensions
+Doc.set_extension("pubtime", default=None)
+Doc.set_extension("medium_code", default=None)
+Doc.set_extension("head", default=None)
+
+#https://spacy.io/usage/processing-pipelines
+doc_tuples = nlp.pipe(articles_zh_tuples[0], as_tuples = True)
+
+docs = []
+for doc, context in nlp.pipe(articles_zh_tuples, as_tuples = True):
+    # Set the custom doc attributes from the context
+    doc._.pubtime = context["pubtime"]
+    doc._.medium_code = context["medium_code"]
+    doc._.head = context["head"]
+    docs.append(doc)
+
