@@ -104,6 +104,7 @@ matcher.add("MOBILITY",None,*patterns) #add the list to the matcher
 matches = matcher(doc)
 matches #a list of pattern hashes and start and end points
 
+# nlp.vocab.strings can translate hash to string and vice versa
 nlp.vocab.strings[matches[0][0]]
 
 
@@ -164,5 +165,70 @@ doc = nlp("In der Stadt können wir autofahren und laufen")
 # print the ent text and label
 print([(ent.text, ent.label_) for ent in doc.ents])
 
-# extending Doc, Span or Token with custom method extensions ---------
+# extending Doc, Span, Token or entities with custom method extensions ---------
 
+nlp = spacy.load("de_core_news_md")
+
+# for example, find a certain type of entity label and and create a method that turns it into a wikipedia
+# search URL
+# to do so we write an extension for the Span class
+
+# first we define a getter function - it takes a span as input and returns what we want
+def get_wikipedia_url(span):
+    # Get a Wikipedia URL if the span has one of the labels
+    if span.label_ in ("PER", "ORG", "GPE", "LOCATION"):
+        entity_text = span.text.replace(" ", "_")
+        return "https://en.wikipedia.org/w/index.php?search=" + entity_text
+        
+Span.set_extension("wikipedia_url", getter = get_wikipedia_url, force=True)
+
+doc = nlp(
+  "So viele Gnomen arbeiten in der Zürcher Kantonalbank unter ihnen Henri Dunant"
+)
+
+for ent in doc.ents:
+  print(ent.text, ent.label_, ent._.wikipedia_url) # the empty underscore indcates custom extension
+
+# combine custom pipeline component and custom extension -----
+
+# this is quite cool, as it enables to add structured data to a spaCy pipeline
+
+nlp = spacy.load("de_core_news_md")
+
+# let's have our mobility matcher
+
+MOBILITY = ["fliegen","autofahren","laufen"]
+matcher = PhraseMatcher(nlp.vocab)
+patterns = list(nlp.pipe(MOBILITY)) #faster way to import a list
+matcher.add("MOBILITY",None,*patterns) #add the list to the matcher
+
+@Language.component("recognize_mobility_form")
+def recognize_mobility_form(doc):
+    # Apply the matcher to the doc
+    matches = matcher(doc)
+    # Create a Span for each match and assign the label "Mobility"
+    spans = [Span(doc, start, end, label="Mobility") for match_id, start, end in matches]
+    # Overwrite the doc.ents with the matched spans
+    doc.ents = spans
+    return doc
+
+nlp.add_pipe("recognize_mobility_form", after="ner")
+nlp.pipe_names
+
+# now a getter that looks up a categorization of mobility in this dictionary
+mobility_categorization = {"fliegen":"dirty","autofahren":"dirty","laufen":"clean"}
+
+# getter:
+def get_mobility_categorization(span):
+  category = mobility_categorization.get(span.text)
+  return(category)
+
+# register as span extension attribute
+
+Span.set_extension("mobility_category", getter=get_mobility_categorization, force=True)
+
+doc = nlp(
+  "manche fliegen, andere laufen"
+)
+
+print([(ent.text, ent.label_,ent._.mobility_category) for ent in doc.ents])
