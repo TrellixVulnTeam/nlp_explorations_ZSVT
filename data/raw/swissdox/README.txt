@@ -1,0 +1,1 @@
+Swissdocs files are too large for github. They are not commited via Git LFS.
