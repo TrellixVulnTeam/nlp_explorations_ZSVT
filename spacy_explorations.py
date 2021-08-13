@@ -237,6 +237,7 @@ print([(ent.text, ent.label_,ent._.mobility_category) for ent in doc.ents])
 # Getting real - efficient processing of more text ------
 
 import pandas as pd
+import spacy
 
 nlp = spacy.load("de_core_news_md")
 
@@ -264,26 +265,6 @@ entities[0:5]
 persons_in_head = [ent.text for doc in docs for ent in doc.ents if ent.label_ == "PER"]
 persons_in_head
 
-# with matcher is probably faster but I have not gotten full solution yet
-
-from spacy.matcher import Matcher
-
-matcher = Matcher(nlp.vocab)
-
-any_person = [{"ENT_TYPE":"PER"}] #patterns are dictionaries
-# this means find a noun followed by a punctuation
-
-matcher.add("FIND_PERSON", [any_person]) #add pattern to matcher
-
-persons_in_head = [Span(doc,start,end).text for doc in docs for match_id, start, end in matcher(doc)]
-len(persons_in_head)
-persons_in_head
-
-# # for ref (as I am a bit shaky with List comprehension still - outermost loop comes always first)
-# for doc in docs[0:10]:
-#   for match_id, start, end in matcher(doc):
-#     Span(doc, start, end).text
-
 # visualize things - this is quite cool
 
 from spacy import displacy
@@ -310,21 +291,85 @@ webbrowser.open(url)
 from spacy.tokens import Doc
 
 dict_list = articles_zh.to_dict("records")
-articles_zh_tuples = [[item.get('content'),item] for item in dict_list][0]
+# some list comprehension
+articles_zh_tuples = [
+  (dic.get('content'),
+  {key:value for key, value in dic.items() 
+    if key not in {'content'}
+    }
+  ) 
+  for dic in dict_list
+  ]
 
 # Register some custom extensions
 Doc.set_extension("pubtime", default=None)
 Doc.set_extension("medium_code", default=None)
 Doc.set_extension("head", default=None)
 
+nlp.pipe_names
 #https://spacy.io/usage/processing-pipelines
-doc_tuples = nlp.pipe(articles_zh_tuples[0], as_tuples = True)
+doc_tuples = nlp.pipe(articles_zh_tuples, as_tuples = True)
 
+# takes a while
 docs = []
-for doc, context in nlp.pipe(articles_zh_tuples, as_tuples = True):
-    # Set the custom doc attributes from the context
+for doc, context in doc_tuples:
+    # # Set the custom doc attributes from the context
     doc._.pubtime = context["pubtime"]
     doc._.medium_code = context["medium_code"]
     doc._.head = context["head"]
     docs.append(doc)
 
+
+# look at some docs
+for doc in docs[0:10]:
+  print(doc._.pubtime, doc._.medium_code, doc._.head)
+
+
+# training and updating models ------
+
+# to bootstrap training data, the spacy matcher can be a start
+# let's use the mobility matcher again
+# this time we use the lemmatized forms of the keywords
+
+MOBILITY = ["fliegen","autofahren","flug","auto","fahrrad","fahrradfahren","velo","fahren"]
+mobility_processed = [nlp(keyword) for keyword in MOBILITY]
+MOBILITY_LEMMAS = [token.lemma_ for doc in mobility_processed for token in doc]
+MOBILITY_LEMMAS
+
+from spacy.matcher import Matcher
+
+matcher = Matcher(nlp.vocab)
+lemma_patterns = [[{"LEMMA":lemma}] for lemma in MOBILITY_LEMMAS]
+
+matcher.add("MOBILITY",lemma_patterns)
+
+TRAINING_DATA = []
+
+# create the training data as pairs of text with a dict indicating mobility related word appears or not
+for doc in docs:
+    # Match on the doc and create a list of matched spans
+    if len(matcher(doc)) > 0:
+      is_mobility = True
+    else:
+      is_mobility = False
+    # Format the matches as a (doc.text, entities) tuple
+    training_example = (doc.text, {"mobility": is_mobility})
+    # Append the example to the training data
+    TRAINING_DATA.append(training_example)
+
+print(*TRAINING_DATA, sep="\n")
+
+# look at all true
+for item in TRAINING_DATA:
+  if item[1].get("mobility"):
+    print(item[0])
+    
+# spacy suggests using mixtures of generic categories that are easy to learn and rule-based systems
+# an idea would also be to train the model on eg. wikipedia entries on sustainable development or
+# urban sustainable development
+# or for policy areas on wikipedia entries on energy and linked pages or energy specialized outlets
+
+# annotation open-source: http://brat.nlplab.org/
+# prodigy by makers of spacy 
+
+# interesting pipeline component: text classifier (TextCategorizer)
