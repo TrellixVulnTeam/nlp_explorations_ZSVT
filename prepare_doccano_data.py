@@ -5,18 +5,12 @@ import pandas as pd
 import spacy
 import json
 
-articles_df = pd.read_csv("data/raw/swissdox/210809_request/Angst1.tsv", sep='\t', encoding = 'utf-8')
-articles_df
+# define function for dict list to doccano json -----------------
 
 # doccano expects in json:
 # {"text": "Terrible customer service.", "labels": ["negative"], "meta": {"wikiPageID": 1}}
 # {"text": "Really great transaction.", "labels": ["positive"], "meta": {"wikiPageID": 2}}
 # {"text": "Great price.", "labels": ["positive"], "meta": {"wikiPageID": 3}}
-
-# header classification prep for binary sdg related classification
-
-# turn into dict
-articles_dict_list = articles_df.to_dict("records")
 
 # create data format in dict concatenation
 
@@ -41,12 +35,53 @@ def make_doccano_dict_from_dict_list(input_dict_list: list, text_key: str, label
     for dic in input_dict_list
   ]
   return(output)
-  
-# https://stackabuse.com/reading-and-writing-json-to-a-file-in-python/
 
+# header classification prep for binary sdg related classification -----------------------------
+
+articles_df = pd.read_csv("data/raw/swissdox/210809_request/Angst1.tsv", sep='\t', encoding = 'utf-8')
+articles_df
+
+# turn into dict
+articles_dict_list = articles_df.to_dict("records")
+  
 # header classification
 
 header_classification = make_doccano_dict_from_dict_list(articles_dict_list, "head", meta_keys = ["pubtime"])
 
-with open('data/processed/annotations/annotation_input/header_classification.txt', 'w') as outfile:
+# https://stackabuse.com/reading-and-writing-json-to-a-file-in-python/
+
+with open('data/processed/annotations/annotation_input/header_classification.json', 'w') as outfile:
     json.dump(header_classification, outfile)
+    
+    
+# paragraph classification prep for binary sdg related classification --------------------------------
+
+# beautifulsoup for html splits
+from bs4 import BeautifulSoup 
+
+articles_df = pd.read_csv("data/raw/swissdox/210809_request/Angst1.tsv", sep='\t', encoding = 'utf-8')
+articles_df
+
+# turn into dict
+articles_dict_list = articles_df.to_dict("records")
+
+par_docs = []
+
+for dic in articles_dict_list:
+  soup = BeautifulSoup(dic["content"])
+  paragraphs = [par for par in soup.findAll('p')]
+  for par in paragraphs:
+    par_dic = {key:value for key,value in dic.items() if key not in ["content"]}
+    par_dic["par"] = par
+    par_docs.append(par_dic)
+
+len(par_docs)  
+len(articles_dict_list)
+
+paragraph_classification = make_doccano_dict_from_dict_list(articles_dict_list, "par", meta_keys = ["pubtime"])
+
+# https://stackabuse.com/reading-and-writing-json-to-a-file-in-python/
+
+with open('data/processed/annotations/annotation_input/paragraph_classification.json', 'w') as outfile:
+    json.dump(paragraph_classification, outfile)
+
