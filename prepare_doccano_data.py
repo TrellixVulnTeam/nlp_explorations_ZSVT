@@ -67,18 +67,28 @@ articles_dict_list = articles_df.to_dict("records")
 
 par_docs = []
 
-for dic in articles_dict_list:
-  soup = BeautifulSoup(dic["content"])
-  paragraphs = [par for par in soup.findAll('p')]
-  for par in paragraphs:
-    par_dic = {key:value for key,value in dic.items() if key not in ["content"]}
-    par_dic["par"] = par
-    par_docs.append(par_dic)
+# # for loop
+# 
+# for dic in articles_dict_list:
+#   soup = BeautifulSoup(dic["content"])
+#   paragraphs = [par for par in soup.findAll('p')]
+#   for par in paragraphs:
+#     par_dic = {key:value for key,value in dic.items() if key not in ["content"]}
+#     par_dic["par"] = par
+#     par_docs.append(par_dic)
+
+# dict comprehension - much much faster
+
+par_docs = [{key:value for d in (dic, {'par':par.string}) for key,value in d.items() if key not in ["content"]}
+  for dic in articles_dict_list 
+  for par in BeautifulSoup(dic["content"]).findAll('p')
+  ]
 
 len(par_docs)  
 len(articles_dict_list)
 
-paragraph_classification = make_doccano_dict_from_dict_list(articles_dict_list, "par", meta_keys = ["pubtime"])
+paragraph_classification = make_doccano_dict_from_dict_list(par_docs, "par", 
+  meta_keys = [key for key in par_docs[0].keys() if key not in "par"])
 
 # https://stackabuse.com/reading-and-writing-json-to-a-file-in-python/
 
