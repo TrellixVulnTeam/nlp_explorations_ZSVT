@@ -56,17 +56,25 @@ with open('data/processed/annotations/annotation_input/header_classification.jso
     
 # paragraph classification prep for binary sdg related classification --------------------------------
 
+# it's an intensive amount of paragraphs, so split into batches to annotate
+# also do a quick regex search for sustainability terms to also have some there
+
 # beautifulsoup for html splits
 from bs4 import BeautifulSoup 
 
 articles_df = pd.read_csv("data/raw/swissdox/210809_request/Angst1.tsv", sep='\t', encoding = 'utf-8')
 articles_df
 
+import re
+
+articles_df_sus = articles_df[articles_df.content.str.contains("nachhaltig*")]
+articles_df_non_sus = articles_df[~articles_df.content.str.contains("nachhaltig*")]
+
 # turn into dict
-articles_dict_list = articles_df.to_dict("records")
+# sample a 100 articles from each and turn into dict
+articles_dict_list = [*articles_df_sus[0:100].to_dict("records"),*articles_df_non_sus[0:100].to_dict("records")]
 
-par_docs = []
-
+# par_docs = []
 # # for loop
 # 
 # for dic in articles_dict_list:
@@ -86,6 +94,8 @@ par_docs = [{key:value for d in (dic, {'par':par.string}) for key,value in d.ite
 
 len(par_docs)  
 len(articles_dict_list)
+
+# let's annotate the first
 
 paragraph_classification = make_doccano_dict_from_dict_list(par_docs, "par", 
   meta_keys = [key for key in par_docs[0].keys() if key not in "par"])
