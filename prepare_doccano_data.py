@@ -29,7 +29,7 @@ def make_doccano_dict_from_dict_list(input_dict_list: list, text_key: str, label
   output = [{
     "text":dic.get(text_key),
     # https://stackoverflow.com/questions/44807107/how-to-check-if-object-is-not-none-within-a-list-comprehension
-    "labels":[dic[key] for key in (labels_key or [])],
+    # "labels":[dic[key] for key in (labels_key or [])], # redundant for the moment
     "meta":{key:dic[key] for key in (meta_keys or {})}
     }
     for dic in input_dict_list
@@ -65,14 +65,12 @@ from bs4 import BeautifulSoup
 articles_df = pd.read_csv("data/raw/swissdox/210809_request/Angst1.tsv", sep='\t', encoding = 'utf-8')
 articles_df
 
-import re
-
 articles_df_sus = articles_df[articles_df.content.str.contains("nachhaltig*")]
 articles_df_non_sus = articles_df[~articles_df.content.str.contains("nachhaltig*")]
 
 # turn into dict
-# sample a 100 articles from each and turn into dict
-articles_dict_list = [*articles_df_sus[0:100].to_dict("records"),*articles_df_non_sus[0:100].to_dict("records")]
+# get a subset of 50 articles from each and turn into dict
+articles_dict_list = [*articles_df_sus[0:1].to_dict("records"),*articles_df_non_sus[0:1].to_dict("records")]
 
 # par_docs = []
 # # for loop
@@ -95,10 +93,14 @@ par_docs = [{key:value for d in (dic, {'par':par.string}) for key,value in d.ite
 len(par_docs)  
 len(articles_dict_list)
 
+# to avoid error if text is empty (build into function/ unit testing later)
+par_docs = [dic for dic in par_docs if dic["par"] is not None]
+
 # let's annotate the first
 
-paragraph_classification = make_doccano_dict_from_dict_list(par_docs, "par", 
-  meta_keys = [key for key in par_docs[0].keys() if key not in "par"])
+paragraph_classification = make_doccano_dict_from_dict_list(par_docs[0:20], "par", 
+  meta_keys = ["id"]#[key for key in par_docs[0].keys() if key not in "par"]
+  )
 
 # https://stackabuse.com/reading-and-writing-json-to-a-file-in-python/
 
