@@ -27,8 +27,6 @@ from solutions.a_parsing import parse_dataset
 
 # Load spacy with the large model for the English language (en_core_web_lg)
 nlp = spacy.load("en_core_web_lg")
-# TODO: Scroll to the bottom of this file
-
 
 def get_spacy():
     """
@@ -36,9 +34,6 @@ def get_spacy():
     spacy object
     """
     return nlp
-
-
-# TODO scroll to bottom of file
 
 
 def preprocess_dataset(df, column_name="fulltext"):
@@ -64,7 +59,7 @@ def preprocess_dataset(df, column_name="fulltext"):
         # Hint: Use the nlp(...) function offered by spacy (see b_playground for how to
         # apply spacy on a given text in order to retrieve a preprocessed document)
         # Hint 2: Apply spacy on the variable text
-        doc = ...
+        doc = nlp(text)
 
         # add the document to the docs list
         docs.append(doc)

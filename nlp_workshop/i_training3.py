@@ -80,7 +80,7 @@ def training_pipeline():
     input_vector_all, y_true_all = create_examples(df, docs)
 
     # Padding of input vectors
-    # input_vector_all = padding_of_input_vectors(input_vector_all)
+    input_vector_all = padding_of_input_vectors(input_vector_all)
 
     # Normalize y_true_all
     y_true_all = normalize_sentiment(y_true_all)
@@ -110,7 +110,7 @@ def training_pipeline():
     # work to a CS/CL conference, you typically would want to try to find the best
     # combination of these parameters to hopefully improve the classification, even if
     # only by one percent points.)
-    classifier = MLPClassifier(random_state=1)
+    classifier = MLPClassifier(random_state=1)#random state is like set.seed() - replicability
 
     # For each training example, get the input_vector and the sentiment_vector (and
     # do this for all examples and create a list of this)
@@ -124,6 +124,7 @@ def training_pipeline():
     # fit (we used this function already in the context of clustering).
     # Hint 3: https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html#sklearn.neural_network.MLPClassifier.fit
     # TODO add one line of code: classifier.TODO(TODO, TODO)
+    classifier.fit(input_vector, sentiment_vector)
 
     logger.info("done")
 

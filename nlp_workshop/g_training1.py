@@ -46,7 +46,7 @@ def first_k_sentence_of_doc_to_vector(doc, k):
         # TODO *Extend* the vector list with the cur_vector
         # Hint: Don't use append, because this will result in vector being a list of
         # lists, whereas we want a list of scalars
-        vector  # TODO: vector.TODO(TODO)
+        vector.extend(cur_vector)
 
     return vector
 
@@ -92,7 +92,7 @@ def create_examples(df, docs):
         # TODO Get the true value for the sentiment of the current article
         # Hint: From the df_row object, which behaves like a dict (the attribute's name
         # is TONE)
-        y_true = ...
+        y_true = df_row.TONE
 
         # Append the vector as well as the true value to the list of all vectors and
         # true values, respectively.

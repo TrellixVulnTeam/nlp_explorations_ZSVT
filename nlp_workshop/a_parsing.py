@@ -29,8 +29,8 @@ def get_full_text_from_row(headline, text):
     #  them?
     # Hint: Google "python remove leading and trailing spaces"
     # Hint 2: https://stackoverflow.com/a/959218
-    headline = headline  # TODO: headline = headline.TODO
-    text  # TODO: text = text.TODO
+    headline = headline.strip()  # TODO: headline = headline.TODO
+    text = text.strip() # TODO: text = text.TODO
 
     # Note that spacy, the NLP library we'll use
     # later, requires that each sentence ends with a period in order to detect it as an
@@ -38,7 +38,7 @@ def get_full_text_from_row(headline, text):
     # a common technique in NLP). See if this is always the case for the headline by
     # setting a breakpoint and debugging the program or by looking at the Excel file.
     # If not, add a period to the headline. (Hint: it is not always the case)
-    headline  # TODO: headline = headline + ...
+    headline = headline + " " + text # TODO: headline = headline + ...
 
     # TODO: Now, concatenate (=add) both attributes. Be sure to add a space between them
     #  (again, this is required by spacy for sentence segmentation).
@@ -75,7 +75,7 @@ def parse_dataset(k=100):
     # file and the correct sheet within.
     # Hint: google "pandas read excel sheet"
     # Hint 2: https://stackoverflow.com/questions/47975866
-    df = pd  # TODO: df = pd.read_excel(..., ...=...)
+    df = pd.read_excel(filename, sheet_name=sheet)  # TODO: df = pd.read_excel(..., ...=...)
 
     # Always be nice to your "future" you and your fellows :-) Thus, print some
     # helpful info, for example the number of rows the file contains. Writing proper

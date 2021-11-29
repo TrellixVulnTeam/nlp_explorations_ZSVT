@@ -24,9 +24,6 @@ from util import prepare_system_to_run_from_solutions_folder
 from loguru import logger
 
 
-# TODO scroll to pipeline()
-
-
 def get_gpes_and_mentions(docs):
     """
     Given a set of docs, retrieves all GPEs and their mentions. Returns a list sorted
@@ -61,14 +58,12 @@ def get_gpes_and_mentions(docs):
         # As you might remember from the b_nlpplayground.py exercise, doc.ents lets us
         # access all named entities found in a document. Iterate all such entities
         for ent in doc.ents:
-            # TODO Check whether the type of the entity is a geopolitical entity (2
-            #  lines of code)
             # Hint 1: As https://spacy.io/usage/spacy-101#annotations-ner shows (search
             # for "named entity", the type we are looking for is "GPE"
             # Hint 2: As the same website shows, the type can be accessed by using
             # "ent.label_"
-            entity_type = ...  # TODO
-            if entity_type == "TODO":  # TODO
+            entity_type = ent.label_
+            if entity_type == "GPE":
                 # Add the current entity mention to the list of all mentions of this
                 # entity
                 gpe_name_and_mentions[ent.text].append(ent)
@@ -106,25 +101,22 @@ def find_actions_of_gpe(gpe_mentions):
     for gpe_mention in gpe_mentions:
         # Now, we need to investigate for the current mention, which verbs are in the
         # same sentence.
-        # TODO Get the sentence of the current GPE mention
         # Hint: You can get the sentence of a GPE mention (which is called a Span in
         # spacy's terminology, as it spans multiple individual tokens) using the
         # sent attribute of the gpe_mention
-        sentence = ...  # TODO: sentence_of_mention = gpe_mention...
+        sentence = gpe_mention.sent
 
         # Now that we have the current GPE's sentence, iterate all the sentence's tokens
         for token in sentence:
             # ... and for each token, check what its part of speech is
-            # TODO Get the part of speech of the current token
             # Hint: We already did this in b_nlpplayground, line 23
             # Hint 2: Use the pos_ attribute
-            pos_of_token = ...
+            pos_of_token = token.pos_
 
-            # TODO Check if pos_of_token is a verb
             # Hint: As stated on the spacy website, spacy uses a specific set of POS
             # labels and provides a link to this website where you can find
             # what the label of a verb is: https://universaldependencies.org/u/pos/
-            if pos_of_token == "TODO":
+            if pos_of_token == "VERB":
                 # Get the lemmatized version of the verb
                 lemmatized_verb = token.lemma_
 
@@ -168,7 +160,6 @@ def find_most_frequent_gpes_and_what_they_do(docs):
         gpe_mentions = one_gpe_and_its_mentions[1]
 
         # For the current GPE, let's find all its actions
-        # TODO CMD+Click
         verbs = find_actions_of_gpe(gpe_mentions)
 
         logger.info("{}: {}", gpe_text, verbs)
@@ -199,7 +190,6 @@ def pipeline():
     # * Get only the most frequent ones
     # * Only for these GPEs, get their actions (we'll do that by looking up the
     #   sentences where the GPEs occur and retrieving the verbs in such sentences)
-    # TODO CMD+Click
     find_most_frequent_gpes_and_what_they_do(docs)
 
 

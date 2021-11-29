@@ -39,7 +39,7 @@ def evaluate():
     # "scikit learn MLPClassifier predict" to find out how you can predict with this
     # classifier
     # Hint 2: use the predict function and the input_vectors
-    predicted_sentiment_vectors = classifier  # TODO: classifier.TODO(TODO)
+    predicted_sentiment_vectors = classifier.predict(input_vectors)  # TODO: classifier.TODO(TODO)
 
     # Et voila! Let's evaluate the classifier. predicted_sentiment_vectors now contains
     # the

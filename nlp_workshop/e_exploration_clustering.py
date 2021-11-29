@@ -36,7 +36,7 @@ def convert_documents_to_vectors(documents):
     for text in documents:
         # TODO Use spacy to preprocess the text into a document
         # Hint: use the nlp(...) function as in the earlier exercises
-        doc = ...
+        doc = nlp(text)
 
         # Append the current doc to the list spacy_docs
         spacy_docs.append(doc)
@@ -56,7 +56,7 @@ def convert_documents_to_vectors(documents):
         # numerical representation that conveys syntactic, semantic, and other
         # information (we'll see a few practical examples of what this means later in
         # the workshop).
-        vector_representation = doc  # TODO: article_embedding = doc.TODO
+        vector_representation = doc.vector  # TODO: article_embedding = doc.TODO
 
         # add the current doc's vector to our vector list
         vectors.append(vector_representation)
@@ -87,7 +87,7 @@ def agglomerative_clustering(vectors):
     # (look for the function fit; as you can see it takes two parameters, whereby the
     # second is ignored so that you only need to pass the first one, which is our data,
     # i.e., the variable named vectors, containing the list of embeddings
-    model = model  # TODO: model = model.fit(TODO)
+    model = model.fit(vectors)
 
     # Plot the results of agglomerative clustering in a dendrogram (this is a prepared
     # function)
@@ -187,9 +187,6 @@ def pipeline():
         "When Can the Covid Masks Finally Come Off?",
         "I like peanuts but I hate fries.",
     ]
-    # TODO Have a look at the above documents. Which topics are they about and which
-    #  do you think should be grouped together? Which documents do you think NLP
-    #  might have a hard time of identifying that they belong together?
 
     # Convert the documents into a numerical vector representation
     # TODO CMD + Click

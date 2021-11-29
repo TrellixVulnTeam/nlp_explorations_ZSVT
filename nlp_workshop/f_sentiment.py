@@ -31,12 +31,12 @@ from loguru import logger
 # Hint: Go to
 # https://huggingface.co/siebert/sentiment-roberta-large-english, click
 # on "Use in Transformers" (top right), and copy paste the corresponding line of code.
-tokenizer = ...
+tokenizer = AutoTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
 
 # We'll also need to load the model itself.
 # TODO Load our model (siebert/sentiment-roberta-large-english)
 # Hint: See previous hint
-model = ...
+model = AutoModelForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english")
 
 
 # TODO scroll to pipeline()
@@ -53,7 +53,7 @@ def predict_sentiment_of_sentence(sentence):
     # FYI: Remember the top text in this file about pytorch and tensorflow?
     # return_tensors="pt" just means that we want the tokenizer to return a pytorch
     # object
-    inputs = tokenizer(..., return_tensors="pt")
+    inputs = tokenizer(sentence, return_tensors="pt")
 
     # Call the model. This will pass the tokenized and converted inputs to the model,
     # i.e., the pre-trained and fine-tuned model we downloaded from Huggingface Hub, and

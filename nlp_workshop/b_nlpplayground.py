@@ -53,7 +53,7 @@ def text_similarity():
 
 def pipeline():
     # TODO change my_text, if you want
-    my_text = "Apple is looking at buying U.K. startup for $1 billion"
+    my_text = "guguseli guguseli"
 
     # Load the library using the large (lg) model of the English language (en) trained
     # on various datasets representing online documents (web)

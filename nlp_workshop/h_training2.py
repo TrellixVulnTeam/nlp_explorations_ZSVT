@@ -39,6 +39,8 @@ def normalize_sentiment(y_true_all):
     # used in the Excel, and its corresponding value is the normalized value we'll use
     LABEL2CLASS = {
         "POS": 1,
+        "NEUT": 0,
+        "NEG": -1
         # TODO add the remaining classes (there might be mistakes in the Excel, which
         #  you'll notice later...). You may just run (no need to debug) the file and see
         #  which KeyError you get when it crashes. Whatever key is stated in the error,
@@ -58,6 +60,7 @@ def normalize_sentiment(y_true_all):
     )
 
     # convert from single numerical scalar (with 3 values) to a 3-sized vector
+    # could also go directly here eg. with a regex match
     y_true_all = []
     for y_true in tmp:
         vector = None
@@ -89,7 +92,7 @@ def create_splits(input_vector_all, y_true_all):
     # Hint: use the shuffle function (it doesn't return anything but changes the list
     # passed to it, so it's sufficient to call the function without assigning its return
     # value to a variable)
-    ...(examples)
+    shuffle(examples)
 
     # Split
     # In ML, a commonly used split is 80%/20% for the training and test set. Although we
@@ -97,7 +100,7 @@ def create_splits(input_vector_all, y_true_all):
     # this the general way so that the splitting will also work with any number of
     # examples.
     # TODO get the number of examples
-    num_examples = ...
+    num_examples = len(examples)
 
     # Determine the position in the list where we should split (everything before
     #  that position will be one set, everything after another set)
